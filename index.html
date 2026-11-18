@@ -16,18 +16,18 @@ button{font:inherit;border:0;cursor:pointer;color:#fff}
 .big{font-size:clamp(44px,10vw,90px);font-weight:800;padding:.4em 1.6em;border-radius:999px;background:#fb8500;box-shadow:0 8px 0 #c26500;animation:pulse 1.8s infinite}
 .big:active{transform:translateY(6px);box-shadow:0 2px 0 #c26500}
 @keyframes pulse{50%{transform:scale(1.05)}}
-h1{font-size:clamp(34px,7vw,64px);margin:0;text-align:center}
-.grid{width:100%;max-width:900px;flex:1;min-height:0;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+h1{font-size:clamp(26px,6vmin,64px);margin:0;text-align:center}
+.grid{width:100%;max-width:1200px;flex:1;min-height:0;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 @media (orientation:portrait){.grid{grid-template-columns:repeat(2,1fr)}}
 .num{font-size:clamp(40px,12vmin,110px);font-weight:800;border-radius:24px;box-shadow:0 6px 0 rgba(0,0,0,.22)}
 .num:active{transform:translateY(4px)}
 .shake{animation:shake .4s}@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
-.tiles{width:100%;max-width:900px;flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tiles{width:100%;max-width:1200px;flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 @media (orientation:portrait){.tiles{grid-template-columns:1fr}}
 .tile{border-radius:32px;font-size:clamp(28px,6vw,52px);font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 0 rgba(0,0,0,.22)}
 .tile span{font-size:clamp(60px,14vmin,130px)}
 .tile.soon{background:#cfc6aa;box-shadow:none;opacity:.6}
-.top{width:100%;max-width:900px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.top{width:100%;max-width:1200px;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .back{background:#8d99ae;border-radius:999px;font-size:26px;font-weight:700;padding:.35em .9em}
 .stars{font-size:clamp(20px,4vw,34px);letter-spacing:2px}
 .sign{flex:1;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;background:none}
@@ -41,43 +41,50 @@ h1{font-size:clamp(34px,7vw,64px);margin:0;text-align:center}
 .cell img{flex:1;min-height:0;min-width:0;max-width:100%;object-fit:contain;pointer-events:none}
 .cell span{font-size:clamp(12px,2.2vmin,22px);font-weight:700;line-height:1.1;text-align:center}
 .cell.on{background:#ffe08a;transform:scale(1.04)}
-#sec{position:fixed;right:6px;bottom:calc(6px + env(safe-area-inset-bottom));width:30px;height:30px;border-radius:50%;background:#000;opacity:.06}
+#sec{position:fixed;right:0;bottom:env(safe-area-inset-bottom);width:72px;height:72px;border-radius:50%;background:#000;opacity:.05;z-index:50;padding:0}
+#sec.f{opacity:.3}
+.sh{width:100%;max-width:700px;font-size:clamp(20px,3.5vmin,30px);font-weight:800;margin:6px 0 0}
 .vlist{width:100%;max-width:700px;flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
 .vbtn{background:#fff;color:#3a2a00;font-size:22px;font-weight:700;padding:.7em 1em;border-radius:16px;text-align:left;box-shadow:0 4px 0 rgba(0,0,0,.15)}
 .vbtn small{font-weight:400;opacity:.7}
 .vbtn.sel{background:#2a9d8f;color:#fff}
+.wgrid{width:100%;max-width:1200px;flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:8px}
 .party{font-size:clamp(80px,22vmin,200px);animation:pulse 1s infinite}
 </style></head><body><div id="app"><main id="v"></main>
 <footer>Copyright by Patrick Uhle<br>Version 0.2611</footer></div>
 <script>
 const $=document.getElementById('v');
 const COL=['#e63946','#fb8500','#2a9d8f','#219ebc','#8e5bd1','#d6336c','#4c9f38','#e07a00','#3a86ff','#c9184a'];
-let voice=null;
-function deVoices(){return speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.toLowerCase().replace('_','-').startsWith('de'))}
-function pickVoice(){const l=deVoices();let saved=null;try{saved=localStorage.getItem('voice')}catch(e){}
-  voice=l.find(v=>v.voiceURI===saved)||l.find(v=>/anna|petra|marlene|female/i.test(v.name))||l[0]||null}
+let voice=null,voiceEn=null;
+function vs(p){return speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.toLowerCase().replace('_','-').startsWith(p))}
+function pick(p,key,pref){let saved=null;try{saved=localStorage.getItem(key)}catch(e){}const l=vs(p);return l.find(v=>v.voiceURI===saved)||l.find(v=>pref.test(v.name))||l[0]||null}
+function pickVoice(){voice=pick('de','voice',/anna|petra|marlene|female/i);voiceEn=pick('en','voiceEn',/samantha|karen|serena|moira|female/i)}
 if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
-function say(t){if(!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='de-DE';if(voice)u.voice=voice;u.rate=.85;u.pitch=1.1;speechSynthesis.speak(u)}catch(e){}}
+function say(t,lang){if(!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);const en=lang==='en';u.lang=en?'en-US':'de-DE';const v=en?voiceEn:voice;if(v)u.voice=v;u.rate=en?.8:.85;u.pitch=1.1;speechSynthesis.speak(u)}catch(e){}}
 const rnd=n=>Math.floor(Math.random()*n);
 const PRAISE=['Super!','Prima!','Toll gemacht!','Genau richtig!','Sehr gut!','Klasse!'];
 
 function start(){
   $.innerHTML='<h1>Lernspaß 🌟</h1><button class="big" id="go">Start</button><button id="sec" aria-hidden="true" tabindex="-1"></button>';
   document.getElementById('go').onclick=()=>numberGame({rounds:2,gate:true});
-  let n=0,t=null;
-  document.getElementById('sec').onclick=()=>{n++;clearTimeout(t);t=setTimeout(()=>n=0,3000);if(n>=5){n=0;settings()}};
+  const sec=document.getElementById('sec');let n=0,t=null;
+  sec.addEventListener('pointerdown',e=>{e.preventDefault();n++;clearTimeout(t);t=setTimeout(()=>n=0,4000);
+    sec.classList.add('f');setTimeout(()=>sec.classList.remove('f'),120);
+    if(n>=5){n=0;settings()}});
 }
 function settings(){
-  const l='speechSynthesis' in window?deVoices():[];
-  $.innerHTML=`<div class="top"><button class="back" id="bk">⬅ Zurück</button></div><h1>Einstellungen</h1>
-  <div class="cap" style="font-size:clamp(20px,4vw,30px)">Stimme zum Vorlesen</div>
-  <div class="vlist">${l.length?l.map(v=>`<button class="vbtn${voice&&v.voiceURI===voice.voiceURI?' sel':''}" data-u="${v.voiceURI}">${v.name} <small>(${v.lang})</small></button>`).join(''):'<p>Keine deutschen Stimmen gefunden. Lade sie unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen.</p>'}</div>`;
+  const ok='speechSynthesis' in window;
+  const lists=[['de','voice','Stimme Deutsch','Hallo! So klingt meine Stimme. Zeige mir die 5.',voice],['en','voiceEn','Stimme Englisch','Hello! This is my voice. Dog, cat, ball.',voiceEn]];
+  const L=lists.map(x=>ok?vs(x[0]):[]);
+  $.innerHTML=`<div class="top"><button class="back" id="bk">⬅ Zurück</button></div><h1>Einstellungen</h1><div class="vlist">`+
+   lists.map((x,k)=>`<div class="sh">${x[2]}</div>`+(L[k].length?L[k].map(v=>`<button class="vbtn${x[4]&&v.voiceURI===x[4].voiceURI?' sel':''}" data-k="${k}" data-u="${v.voiceURI}">${v.name} <small>(${v.lang})</small></button>`).join(''):'<p>Keine Stimme gefunden. Lade sie unter Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen.</p>')).join('')+'</div>';
   document.getElementById('bk').onclick=()=>{say('');start()};
   $.querySelectorAll('.vbtn').forEach(b=>b.onclick=()=>{
-    voice=l.find(v=>v.voiceURI===b.dataset.u);
-    try{localStorage.setItem('voice',voice.voiceURI)}catch(e){}
-    $.querySelectorAll('.vbtn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');
-    say('Hallo! So klingt meine Stimme. Zeige mir die 5.');
+    const k=+b.dataset.k,x=lists[k],v=L[k].find(v=>v.voiceURI===b.dataset.u);
+    if(k===0)voice=v;else voiceEn=v;
+    try{localStorage.setItem(x[1],v.voiceURI)}catch(e){}
+    $.querySelectorAll('.vbtn[data-k="'+k+'"]').forEach(y=>y.classList.remove('sel'));b.classList.add('sel');
+    say(x[3],x[0]);
   });
 }
 function numberGame({rounds,gate}){
@@ -104,9 +111,11 @@ function numberGame({rounds,gate}){
 function home(){
   $.innerHTML=`<h1>Was möchtest du machen?</h1><div class="tiles">
   <button class="tile" id="t1" style="background:#e63946"><span>🔢</span>Zahlen üben</button>
-  <button class="tile" id="t2" style="background:#219ebc"><span>🚸</span>Verkehrszeichen</button></div>`;
+  <button class="tile" id="t2" style="background:#219ebc"><span>🚸</span>Verkehrszeichen</button>
+  <button class="tile" id="t3" style="background:#2a9d8f"><span>🇬🇧</span>Englisch</button></div>`;
   document.getElementById('t1').onclick=()=>numberGame({rounds:10,gate:false});
   document.getElementById('t2').onclick=()=>signs();
+  document.getElementById('t3').onclick=()=>words();
 }
 const SIGNS=[{f:'fussgaenger',s:'Zebrastreifen! Hier dürfen Kinder die Straße überqueren. Erst links schauen, dann rechts schauen.'},{f:'fahrrad',s:'Fahrräder verboten! Hier dürfen keine Fahrräder fahren.'},{f:'bus',s:'Bus-Schild! Hier ist der Weg für Busse.'},{f:'sackgasse',s:'Sackgasse! Hier geht die Straße nicht weiter.'},{f:'halteverbot',s:'Haltverbot! Hier darf kein Auto anhalten.'},{f:'fussweg',s:'Fußweg! Hier gehen Menschen zu Fuß, zum Beispiel Mama mit Kind.'},{f:'ampel',s:'Ampel! Bei Rot bleiben wir stehen. Bei Grün dürfen wir gehen.'},{f:'autobahn',s:'Autobahn! Hier fahren Autos ganz schnell.'},{f:'vorfahrtgew',s:'Vorfahrt gewähren! Hier müssen die Autos warten und andere vorbeilassen.'},{f:'einfahrt',s:'Einfahrt verboten! Hier dürfen keine Autos hinein fahren.'},{f:'wild',s:'Achtung Wildtiere! Hier können Rehe über die Straße springen.'},{f:'schleuder',s:'Achtung rutschig! Die Straße kann glatt sein.'},{f:'gegenverkehr',s:'Gegenverkehr! Hier kommen uns Autos entgegen. Wir müssen aufpassen.'},{f:'baustelle',s:'Baustelle! Hier wird gearbeitet. Wir müssen vorsichtig sein.'},{f:'ueberholen',s:'Überholverbot! Hier darf kein Auto ein anderes überholen.'},{f:'kreuzung',s:'Achtung Kreuzung! Hier kommen Autos von der Seite. Gut aufpassen.'},{f:'parken',s:'Parkplatz! Hier dürfen Autos parken.'},{f:'tempo60',s:'Tempo sechzig! Hier darf man nicht schneller als sechzig fahren.'},{f:'stop',s:'Stopp! Hier müssen alle Autos anhalten.'},{f:'vorfahrtstr',s:'Vorfahrtstraße! Auf dieser Straße darf man zuerst fahren.'}];
 function signs(){
@@ -116,6 +125,27 @@ function signs(){
   $.querySelectorAll('.cell').forEach(c=>c.onclick=()=>{
     $.querySelectorAll('.cell').forEach(x=>x.classList.remove('on'));c.classList.add('on');
     say(SIGNS[+c.dataset.i].s);
+  });
+}
+const E=c=>`<svg viewBox="0 0 100 100"><text x="50" y="54" font-size="78" text-anchor="middle" dominant-baseline="central">${c}</text></svg>`;
+const V=b=>`<svg viewBox="0 0 100 100">${b}</svg>`;
+const WORDS=[
+{w:'dog',f:'hund',a:E('🐶')},{w:'cat',f:'katze',a:E('🐱')},{w:'butterfly',f:'schmetterling',a:E('🦋')},{w:'car',f:'auto',a:E('🚗')},
+{w:'bicycle',f:'fahrrad',a:E('🚲')},{w:'flower',f:'blume',a:E('🌸')},{w:'tree',f:'baum',a:E('🌳')},{w:'motorbike',f:'motorrad',a:E('🏍️')},
+{w:'ball',f:'ball',a:E('⚽')},{w:'house',f:'haus',a:E('🏠')},
+{w:'lamp',f:'lampe',a:V('<polygon points="30,16 70,16 84,52 16,52" fill="#ffc300" stroke="#b58900" stroke-width="3" stroke-linejoin="round"/><rect x="46" y="52" width="8" height="30" fill="#6c757d"/><ellipse cx="50" cy="86" rx="22" ry="7" fill="#495057"/>')},
+{w:'table',f:'tisch',a:V('<rect x="8" y="34" width="84" height="12" rx="4" fill="#b5651d"/><rect x="16" y="46" width="9" height="42" rx="2" fill="#8c4a0f"/><rect x="75" y="46" width="9" height="42" rx="2" fill="#8c4a0f"/>')},
+{w:'chair',f:'stuhl',a:E('🪑')},{w:'spoon',f:'loeffel',a:E('🥄')},
+{w:'fork',f:'gabel',a:V('<g fill="#8d99ae"><rect x="30" y="8" width="7" height="30" rx="3"/><rect x="42" y="8" width="7" height="30" rx="3"/><rect x="54" y="8" width="7" height="30" rx="3"/><rect x="66" y="8" width="7" height="30" rx="3"/><rect x="30" y="28" width="43" height="16" rx="8"/><rect x="45" y="40" width="12" height="52" rx="6"/></g>')},
+{w:'knife',f:'messer',a:V('<path d="M42 8 Q72 16 66 56 H42 Z" fill="#8d99ae"/><rect x="42" y="54" width="16" height="38" rx="7" fill="#6c757d"/>')}];
+function words(){
+  $.innerHTML=`<div class="top"><button class="back" id="bk">⬅ Zurück</button></div>
+  <div class="wgrid">${WORDS.map((g,i)=>`<button class="cell" data-i="${i}">${g.a}</button>`).join('')}</div>`;
+  document.getElementById('bk').onclick=()=>{say('');home()};
+  $.querySelectorAll('.cell').forEach(c=>{
+    const g=WORDS[+c.dataset.i];
+    const im=new Image();im.onload=()=>{c.innerHTML='';c.appendChild(im)};im.src='img/words/'+g.f+'.jpg';
+    c.onclick=()=>{$.querySelectorAll('.cell').forEach(x=>x.classList.remove('on'));c.classList.add('on');say(g.w,'en')};
   });
 }
 if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
